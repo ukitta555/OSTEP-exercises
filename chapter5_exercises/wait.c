@@ -12,7 +12,7 @@ int main() {
         fprintf(stderr, "Fork failed!");
     } else if (rc == 0) {
         // child case
-        printf("Child reporting!\n");
+        printf("Child reporting! (pid: %d)\n", getpid());
         int child_pid = wait(NULL); 
         printf("Child reporting! Return value of wait: %d\n", child_pid);
     } else {
