@@ -34,19 +34,22 @@ int main() {
     int first_pipe = pipe(file_descriptors_first_pipe);
     int second_pipe = pipe(file_descriptors_second_pipe);
 
-    cpu_set_t mask;
-    CPU_SET(7, &mask);
+    // cpu_set_t mask;
+    // CPU_ZERO(&mask); // for some reason, initial mask is created with some processors already set...
+    // CPU_SET(7, &mask);
     // int rc = sched_setaffinity(0, sizeof(cpu_set_t), &mask);    
     // printf("%d \n", rc);
 
     int child_pid = fork();
 
+
     cpu_set_t mask2;
     CPU_ZERO(&mask2); // for some reason, initial mask is created with some processors already set...
     CPU_SET(7, &mask2);
-    int rc = sched_setaffinity(0, sizeof(cpu_set_t), &mask2);
-    printf("%d \n", rc);
+    int rc2 = sched_setaffinity(0, sizeof(cpu_set_t), &mask2);
+    printf("%d \n", rc2);
     print_affinity();
+
 
     if (child_pid < 0) {
         printf("Couldn't fork()!");
@@ -55,23 +58,30 @@ int main() {
         char buf[12];
         printf("child executes on CPU %d \n", sched_getcpu());
         unsigned long long total_ctx_swtch_nanoseconds = 0; 
+        clock_gettime(CLOCK_REALTIME, &ts1);
         for (int i = 0; i < 1e4; i++) {
-            write(file_descriptors_first_pipe[1], "Hello world\n", 12);
-            clock_gettime(CLOCK_REALTIME, &ts1);
-            read(file_descriptors_second_pipe[0], buf, 12);
-            clock_gettime(CLOCK_REALTIME, &ts2);
-            unsigned long long context_switch_nanoseconds = ts2.tv_nsec - ts1.tv_nsec;
-            // printf("%d\n", context_switch_nanoseconds);
-            total_ctx_swtch_nanoseconds += context_switch_nanoseconds;            
-            // printf("%d\n", total_ctx_swtch_nanoseconds);
+            write(file_descriptors_first_pipe[1], "H", 1);
+            read(file_descriptors_second_pipe[0], buf, 1);
         }
-        printf("Nanoseconds spent on average for context switch: %15.12lf", (double)total_ctx_swtch_nanoseconds / 1e4);
+        clock_gettime(CLOCK_REALTIME, &ts2);
+        unsigned long long context_switch_nanoseconds = (ts2.tv_sec - ts1.tv_sec) * 1000000000LL + (ts2.tv_nsec - ts1.tv_nsec);
+        // printf("%d\n", context_switch_nanoseconds);
+        total_ctx_swtch_nanoseconds += context_switch_nanoseconds;            
+        printf("Nanoseconds spent on average for context switch: %15.12lf \n", (double)total_ctx_swtch_nanoseconds / 2e4);
     } else {
         char buf[12];
         printf("parent executes on CPU %d \n", sched_getcpu());   
+        unsigned long long total_ctx_swtch_nanoseconds = 0;
+        
+        clock_gettime(CLOCK_REALTIME, &ts1); 
         for (int i = 0; i < 1e4; i++) {
-            read(file_descriptors_first_pipe[0], buf, 12);
-            write(file_descriptors_second_pipe[1], "Hello world\n", 12);
+            read(file_descriptors_first_pipe[0], buf, 1);
+            write(file_descriptors_second_pipe[1], "H", 1);
         }
+        clock_gettime(CLOCK_REALTIME, &ts2);
+
+        unsigned long long context_switch_nanoseconds = (ts2.tv_sec - ts1.tv_sec) * 1000000000LL + (ts2.tv_nsec - ts1.tv_nsec);
+        total_ctx_swtch_nanoseconds += context_switch_nanoseconds;
+        printf("Nanoseconds spent on average for context switch: %15.12lf \n", (double)total_ctx_swtch_nanoseconds / 2e4);
     }
 }
