@@ -1,0 +1,5 @@
+./mlfq.py -l 0,200,0:100,50,9 -n 3 -a 1 -q 10 -i 1 -I -c
+./mlfq.py -l 0,200,0:100,50,9 -n 3 -a 1 -q 10 -i 1 -c
+
+
+On the lowest level, -I allows the IO job to get back control as soon as the IO finishes.

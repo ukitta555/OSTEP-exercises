@@ -1,0 +1,11 @@
+Some of these might be wrong since I didn't do the -a option right. 
+However, the general idea should be right.
+
+./mlfq.py -l 0,200,0 -n 3 -a 1 -q 10
+./mlfq.py -l 0,200,0:100,20,0 -n 3 -a 1 -q 10
+./mlfq.py -l 0,200,0:100,20,1 -n 3 -a 1 -q 10 -S 
+./mlfq.py -l 0,200,0:100,20,1:100,20,1 -n 3 -a 1 -q 10 -i 1 -S 
+./mlfq.py -l 0,200,0:100,20,1:100,20,1 -n 3 -a 1 -q 10 -i 1 -B 100 -S  // mistake in the book; long-running job should drop down
+./mlfq.py -l 0,200,0:100,20,1 -n 3 -a 1 -q 10 -i 1 -S 
+./mlfq.py -l 0,200,0:100,50,9 -n 3 -a 2 -q 10 -i 1
+./mlfq.py -l 0,200,0:0,200,0 -n 3 -a 2 -Q 10,20,40 -c
